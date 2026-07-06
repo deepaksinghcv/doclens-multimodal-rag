@@ -65,6 +65,8 @@ def add_chunks(chunks: list[dict], source: str) -> int:
             "page": c["page"],
             "chunk_index": c["chunk_index"],
             "source": source,
+            "type": c.get("type", "text"),          # "text" | "image"
+            "image_path": c.get("image_path", ""),   # path to figure, for image chunks
         }
         for c in chunks
     ]

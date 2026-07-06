@@ -13,21 +13,33 @@ import sys
 from pathlib import Path
 
 from config import PDF_DIR
+from ingestion.caption import caption_pdf_images
 from ingestion.chunker import chunk_pages
 from ingestion.clean import clean_pages
 from ingestion.parse_pdf import parse_pdf
 from vectordb.chroma_store import add_chunks
 
 
-def ingest_pdf(pdf_path: Path) -> int:
-    """Parse -> clean -> chunk -> store one PDF. Returns the number of chunks indexed."""
-    source = pdf_path.name  # filename, e.g. "psr_i500.pdf" -> stored in metadata for citations
+def ingest_pdf(pdf_path: Path, with_images: bool = True) -> int:
+    """Parse -> clean -> chunk (+ caption figures) -> store one PDF.
+
+    Text chunks and image-caption chunks go into ONE collection (D6). Returns total indexed.
+    """
+    source = pdf_path.name  # filename -> stored in metadata for citations
 
     pages = parse_pdf(pdf_path=pdf_path)
     pages = clean_pages(pages)  # strip repeated headers/footers before chunking
-    chunks = chunk_pages(pages=pages)
-    n = add_chunks(chunks=chunks, source=source)
-    return n
+    text_chunks = chunk_pages(pages=pages)
+
+    # Multimodal: extract + caption figures into chunks that share the same index.
+    image_chunks = caption_pdf_images(str(pdf_path)) if with_images else []
+
+    # One monotonic chunk_index across text + image chunks (unique ids per source).
+    all_chunks = text_chunks + image_chunks
+    for idx, chunk in enumerate(all_chunks):
+        chunk["chunk_index"] = idx
+
+    return add_chunks(chunks=all_chunks, source=source)
 
 def _resolve_targets(args: list[str]) -> list[Path]:
     """Figure out which PDFs to ingest from CLI args (or all of them if none given)."""

@@ -29,3 +29,9 @@ CANDIDATE_K = 20
 
 # --- Generation ---
 OLLAMA_MODEL = "qwen3:4b"
+
+# --- Multimodal (D6: caption-and-embed) ---
+EXTRACTED_IMAGES_DIR = DATA_DIR / "extracted_images"
+MIN_IMAGE_SIZE = 250  # px; below this is almost always icons/logos, not diagrams
+MAX_CAPTIONS_PER_DOC = 40  # cap VLM captioning work per document (local inference is slow)
+VLM_MODEL = "qwen2.5vl:3b"  # vision-language model for captioning + image reasoning

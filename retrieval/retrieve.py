@@ -34,18 +34,20 @@ def retrieve(query: str, top_k: int = TOP_K) -> list[dict]:
 
     #since we are querying only with 1 query, we index the first element from the results
     docs        = results["documents"][0]
-    meta    = results["metadatas"][0]
+    metadatas   = results["metadatas"][0]
     distances   = results["distances"][0]
 
     return_list = [
         {
-            "text" : doc,
-            "page" : meta["page"],
+            "text": doc,
+            "page": meta["page"],
             "chunk_index": meta["chunk_index"],
             "score": 1 - dist,
-            "source": meta["source"]
+            "source": meta["source"],
+            "type": meta.get("type", "text"),          # "text" | "image"
+            "image_path": meta.get("image_path", ""),   # figure path for image chunks
         }
-        for doc, meta, dist in zip(docs, meta, distances)
+        for doc, meta, dist in zip(docs, metadatas, distances)
     ]
 
     return return_list
