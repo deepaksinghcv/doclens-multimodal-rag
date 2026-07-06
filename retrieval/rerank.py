@@ -57,11 +57,11 @@ def rerank(query: str, hits: list[dict], top_k: int = TOP_K) -> list[dict]:
 
 
 def retrieve_and_rerank(
-    query: str, top_k: int = TOP_K, candidate_k: int = CANDIDATE_K
+    query: str, top_k: int = TOP_K, candidate_k: int = CANDIDATE_K, source: str | None = None
 ) -> list[dict]:
     """Full two-stage retrieval: wide bi-encoder net -> cross-encoder reorder -> top_k."""
-    candidates = retrieve(query, top_k=candidate_k)  # stage 1: recall
-    return rerank(query, candidates, top_k=top_k)     # stage 2: precision
+    candidates = retrieve(query, top_k=candidate_k, source=source)  # stage 1: recall
+    return rerank(query, candidates, top_k=top_k)                    # stage 2: precision
 
 
 if __name__ == "__main__":

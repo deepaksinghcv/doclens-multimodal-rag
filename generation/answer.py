@@ -53,17 +53,19 @@ def build_messages(question: str, chunks: list[dict]) -> list[dict]:
     return message_list
 
 
-def answer(question: str, top_k: int = TOP_K) -> dict:
+def answer(question: str, top_k: int = TOP_K, source: str | None = None) -> dict:
     """Full RAG: retrieve+rerank -> augment -> generate. Returns answer + citations.
 
     Two-stage retrieval (bi-encoder recall -> cross-encoder rerank), justified by eval: on
     the 100-question set reranking lifts Recall@5 ~0.86 -> ~0.93.
 
+    `source` optionally scopes retrieval to a single manual (metadata filter).
+
     Multimodal (D6): if any retrieved chunk is an image caption, we route generation to the
     vision model and attach the actual figure(s), so it reasons over pixels — not just the
     caption text.
     """
-    chunks = retrieve_and_rerank(question, top_k=top_k)
+    chunks = retrieve_and_rerank(question, top_k=top_k, source=source)
 
     if not chunks:
         return {"answer": "No documents are indexed yet.", "pages": [], "chunks": []}

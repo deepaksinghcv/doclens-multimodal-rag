@@ -52,6 +52,7 @@ A summary of the improvements and how each was earned:
 - **Programmatic page citations** (computed from retrieval metadata, not the model)
 - **Multimodal (caption-and-embed)** — figures are extracted, captioned by a vision-language model (Qwen-VL), embedded into the *same* index, and the actual image is passed to the VLM at answer time
 - **Evaluation harness** — Recall@K and MRR over a gold Q→page set
+- **Interactive Gradio web UI** — ask questions (optionally scoped to one manual), see answers with source-aware citations and the retrieved figures inline, and **upload new manuals** that are indexed live
 
 ---
 
@@ -160,8 +161,9 @@ cp your_manual.pdf data/pdfs/
 # 4. Ingest (parse -> clean -> chunk -> caption figures -> embed -> store)
 python -m app.ingest
 
-# 5. Ask questions
-python -m app.cli
+# 5. Ask questions — CLI or the web UI
+python -m app.cli          # terminal
+python -m app.gradio_app   # web UI at http://127.0.0.1:7860 (upload manuals, see figures)
 
 # Optional: evaluate retrieval
 python -m evaluation.retrieval_eval

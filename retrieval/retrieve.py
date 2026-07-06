@@ -12,12 +12,13 @@ from embeddings.embed import embed_query
 from vectordb.chroma_store import get_collection
 
 
-def retrieve(query: str, top_k: int = TOP_K) -> list[dict]:
+def retrieve(query: str, top_k: int = TOP_K, source: str | None = None) -> list[dict]:
     """Find the top_k chunks most semantically similar to `query`.
 
     Args:
         query: the user's natural-language question.
         top_k: how many chunks to return.
+        source: if given, restrict retrieval to chunks from this manual (metadata filter).
 
     Returns:
         A list of up to top_k dicts, most-similar first:
@@ -29,7 +30,8 @@ def retrieve(query: str, top_k: int = TOP_K) -> list[dict]:
     results = get_collection().query(
         query_embeddings=[query_embed],
         n_results=top_k,
-        include=["documents","metadatas","distances"],
+        include=["documents", "metadatas", "distances"],
+        where={"source": source} if source else None,  # scope to one manual if requested
     )
 
     #since we are querying only with 1 query, we index the first element from the results

@@ -20,13 +20,33 @@ from config import CHROMA_DIR, COLLECTION_NAME
 from embeddings.embed import embed_documents
 
 
+# The Chroma client/collection is expensive to construct and cheap to reuse, so we build
+# it once per process and cache it (singleton) — not on every query.
+_collection: chromadb.Collection | None = None
+
+
 def get_collection() -> chromadb.Collection:
-    """Open (or create) the persistent Chroma collection, configured for cosine space."""
-    client = chromadb.PersistentClient(path=str(CHROMA_DIR))
-    return client.get_or_create_collection(
-        name=COLLECTION_NAME,
-        metadata={"hnsw:space": "cosine"},  # match our normalized vectors
-    )
+    """Open (or create) the persistent Chroma collection, configured for cosine space.
+
+    Cached: the PersistentClient is created once per process and reused for every call.
+    """
+    global _collection
+    if _collection is None:
+        client = chromadb.PersistentClient(path=str(CHROMA_DIR))
+        _collection = client.get_or_create_collection(
+            name=COLLECTION_NAME,
+            metadata={"hnsw:space": "cosine"},  # match our normalized vectors
+        )
+    return _collection
+
+
+def list_sources() -> list[str]:
+    """Return the distinct manual filenames currently indexed."""
+    collection = get_collection()
+    if collection.count() == 0:
+        return []
+    metadatas = collection.get(include=["metadatas"]).get("metadatas") or []
+    return sorted({m["source"] for m in metadatas if m.get("source")})
 
 
 def _chunk_id(source: str, chunk_index: int) -> str:
