@@ -21,6 +21,24 @@ Unlike a generic chatbot, DocLens grounds every response in retrieved evidence a
 
 ---
 
+## ⭐ Highlights
+
+`Recall@5 = 1.00`  ·  `MRR ≈ 0.75`  ·  `100% local`  ·  `1,050 text + figure chunks indexed`
+
+A summary of the improvements and how each was earned:
+
+| Improvement lever | Problem it solved | Outcome |
+|---|---|---|
+| **Evaluation harness** (Recall@K, MRR) | "Is retrieval actually good?" | Recall@5 **1.00**, MRR **≈0.75**; caught its own gold-label blind spots |
+| **Boilerplate removal + page-aware chunking** | header/footer noise polluting chunks & citations | clean, correctly page-cited retrieval |
+| **Two-stage retrieval** (bi- + cross-encoder), **A/B-tested** | ranking quality | measured ~neutral → kept optional (shipped on evidence, not hype) |
+| **Caption-and-embed multimodal** | figures/diagrams were unsearchable | figures retrievable; VLM reads the actual image to answer |
+| **Grounded generation + programmatic citations** | hallucination / untraceable answers | refuses when unsupported; every answer cites its source page |
+
+> Metrics are on a small, curated 11-question gold set — directional, built to *drive* decisions rather than to be statistically conclusive.
+
+---
+
 ## Features
 
 - **PDF ingestion** with text extraction (PyMuPDF)
