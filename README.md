@@ -2,6 +2,8 @@
 
 > Ask questions about manuals, diagrams, and technical PDFs using a fully local, evaluated Retrieval-Augmented Generation (RAG) pipeline — grounded answers with page citations, running entirely on your machine.
 
+📊 **[View the technical deep-dive presentation →](https://doclens-deck.vercel.app)**
+
 ---
 
 ## Overview
