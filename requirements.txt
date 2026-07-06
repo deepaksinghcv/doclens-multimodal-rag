@@ -1,0 +1,8 @@
+# DocLens dependencies. Use Python 3.12 (PyTorch/ChromaDB lack 3.13+ wheels).
+#   python3.12 -m venv .venv && source .venv/bin/activate
+#   pip install -r requirements.txt
+pymupdf==1.24.10
+sentence-transformers==3.0.1
+chromadb==0.5.5
+ollama==0.3.3
+numpy>=1.26,<2.0

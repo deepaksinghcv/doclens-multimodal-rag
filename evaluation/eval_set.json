@@ -1,0 +1,13 @@
+[
+  {"question": "How do I connect headphones?", "source": "psr_i500.pdf", "expected_pages": [45,79]},
+  {"question": "How do I record audio?",        "source": "psr_i500.pdf", "expected_pages": [41,42,46]},
+  {"question": "How do I connect the camera to a PC?", "source": "canon_m50_mark2.pdf", "expected_pages": [502,504,506]},
+  {"question": "How do I select a scale?", "source": "psr_i500.pdf", "expected_pages": [53,54]},
+  {"question": "How do I set tempo?", "source": "psr_i500.pdf", "expected_pages": [61, 65,57]},
+  {"question": "How to attach strap?", "source": "canon_m50_mark2.pdf", "expected_pages": [19,21,31]},
+  {"question": "How to format card?", "source": "canon_m50_mark2.pdf", "expected_pages": [42,311]},
+  {"question": "How to attach lens?", "source": "canon_m50_mark2.pdf", "expected_pages": [51, 52, 53]},
+  {"question": "How to detach lens?", "source": "canon_m50_mark2.pdf", "expected_pages": [53,55,56,57,58]},
+  {"question": "How to dim menu?", "source": "canon_m50_mark2.pdf", "expected_pages": [79,80,81]},
+  {"question": "what are the card file formats?", "source": "canon_m50_mark2.pdf", "expected_pages": [610,611,612]}
+]
