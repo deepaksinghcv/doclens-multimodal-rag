@@ -1,23 +1,733 @@
 [
-  {"question": "How do I connect headphones?", "source": "psr_i500.pdf", "expected_pages": [45,79]},
-  {"question": "How do I record audio?",        "source": "psr_i500.pdf", "expected_pages": [41,42,46]},
-  {"question": "How do I connect the camera to a PC?", "source": "canon_m50_mark2.pdf", "expected_pages": [502,504,506]},
-  {"question": "How do I select a scale?", "source": "psr_i500.pdf", "expected_pages": [53,54]},
-  {"question": "How do I set tempo?", "source": "psr_i500.pdf", "expected_pages": [61, 65,57]},
-  {"question": "How to attach strap?", "source": "canon_m50_mark2.pdf", "expected_pages": [19,21,31]},
-  {"question": "How to format card?", "source": "canon_m50_mark2.pdf", "expected_pages": [42,311]},
-  {"question": "How to attach lens?", "source": "canon_m50_mark2.pdf", "expected_pages": [51, 52, 53]},
-  {"question": "How to detach lens?", "source": "canon_m50_mark2.pdf", "expected_pages": [53,55,56,57,58]},
-  {"question": "How to dim menu?", "source": "canon_m50_mark2.pdf", "expected_pages": [79,80,81]},
-  {"question": "what are the card file formats?", "source": "canon_m50_mark2.pdf", "expected_pages": [610,611,612]},
-  {"question": "How do I transpose the pitch?", "source": "psr_i500.pdf", "expected_pages": [50]},
-  {"question": "How do I select a dual voice?", "source": "psr_i500.pdf", "expected_pages": [55]},
-  {"question": "How do I reset the keyboard to factory settings?", "source": "psr_i500.pdf", "expected_pages": [48]},
-  {"question": "How do I save my settings to registration memory?", "source": "psr_i500.pdf", "expected_pages": [43,44]},
-  {"question": "How do I charge the battery?", "source": "canon_m50_mark2.pdf", "expected_pages": [12,37,38]},
-  {"question": "How do I set the ISO speed?", "source": "canon_m50_mark2.pdf", "expected_pages": [214,215,216]},
-  {"question": "How do I set the white balance?", "source": "canon_m50_mark2.pdf", "expected_pages": [221,223,225]},
-  {"question": "How do I use exposure compensation?", "source": "canon_m50_mark2.pdf", "expected_pages": [166,167]},
-  {"question": "How do I connect the camera to a smartphone via Bluetooth?", "source": "canon_m50_mark2.pdf", "expected_pages": [459,461,462]},
-  {"question": "How do I use the movie self-timer?", "source": "canon_m50_mark2.pdf", "expected_pages": [343]}
+  {
+    "question": "How do I connect headphones?",
+    "source": "psr_i500.pdf",
+    "expected_pages": [
+      45,
+      79
+    ]
+  },
+  {
+    "question": "How do I record audio?",
+    "source": "psr_i500.pdf",
+    "expected_pages": [
+      41,
+      42,
+      46
+    ]
+  },
+  {
+    "question": "How do I connect the camera to a PC?",
+    "source": "canon_m50_mark2.pdf",
+    "expected_pages": [
+      502,
+      504,
+      506
+    ]
+  },
+  {
+    "question": "How do I select a scale?",
+    "source": "psr_i500.pdf",
+    "expected_pages": [
+      53,
+      54
+    ]
+  },
+  {
+    "question": "How do I set tempo?",
+    "source": "psr_i500.pdf",
+    "expected_pages": [
+      61,
+      65,
+      57
+    ]
+  },
+  {
+    "question": "How to attach strap?",
+    "source": "canon_m50_mark2.pdf",
+    "expected_pages": [
+      19,
+      21,
+      31
+    ]
+  },
+  {
+    "question": "How to format card?",
+    "source": "canon_m50_mark2.pdf",
+    "expected_pages": [
+      42,
+      311
+    ]
+  },
+  {
+    "question": "How to attach lens?",
+    "source": "canon_m50_mark2.pdf",
+    "expected_pages": [
+      51,
+      52,
+      53
+    ]
+  },
+  {
+    "question": "How to detach lens?",
+    "source": "canon_m50_mark2.pdf",
+    "expected_pages": [
+      53,
+      55,
+      56,
+      57,
+      58
+    ]
+  },
+  {
+    "question": "How to dim menu?",
+    "source": "canon_m50_mark2.pdf",
+    "expected_pages": [
+      79,
+      80,
+      81
+    ]
+  },
+  {
+    "question": "what are the card file formats?",
+    "source": "canon_m50_mark2.pdf",
+    "expected_pages": [
+      610,
+      611,
+      612
+    ]
+  },
+  {
+    "question": "How do I transpose the pitch?",
+    "source": "psr_i500.pdf",
+    "expected_pages": [
+      50
+    ]
+  },
+  {
+    "question": "How do I select a dual voice?",
+    "source": "psr_i500.pdf",
+    "expected_pages": [
+      55
+    ]
+  },
+  {
+    "question": "How do I reset the keyboard to factory settings?",
+    "source": "psr_i500.pdf",
+    "expected_pages": [
+      48
+    ]
+  },
+  {
+    "question": "How do I save my settings to registration memory?",
+    "source": "psr_i500.pdf",
+    "expected_pages": [
+      43,
+      44
+    ]
+  },
+  {
+    "question": "How do I charge the battery?",
+    "source": "canon_m50_mark2.pdf",
+    "expected_pages": [
+      12,
+      37,
+      38
+    ]
+  },
+  {
+    "question": "How do I set the ISO speed?",
+    "source": "canon_m50_mark2.pdf",
+    "expected_pages": [
+      214,
+      215,
+      216
+    ]
+  },
+  {
+    "question": "How do I set the white balance?",
+    "source": "canon_m50_mark2.pdf",
+    "expected_pages": [
+      221,
+      223,
+      225
+    ]
+  },
+  {
+    "question": "How do I use exposure compensation?",
+    "source": "canon_m50_mark2.pdf",
+    "expected_pages": [
+      166,
+      167
+    ]
+  },
+  {
+    "question": "How do I connect the camera to a smartphone via Bluetooth?",
+    "source": "canon_m50_mark2.pdf",
+    "expected_pages": [
+      459,
+      461,
+      462
+    ]
+  },
+  {
+    "question": "How do I use the movie self-timer?",
+    "source": "canon_m50_mark2.pdf",
+    "expected_pages": [
+      343
+    ]
+  },
+  {
+    "question": "Where can I find information about Panel Controls and Terminals?",
+    "source": "psr_i500.pdf",
+    "expected_pages": [
+      13
+    ]
+  },
+  {
+    "question": "Where can I find information about Playing Styles?",
+    "source": "psr_i500.pdf",
+    "expected_pages": [
+      25
+    ]
+  },
+  {
+    "question": "Where can I find information about Playing Songs?",
+    "source": "psr_i500.pdf",
+    "expected_pages": [
+      26
+    ]
+  },
+  {
+    "question": "Where can I find information about Using the Song Lesson Feature?",
+    "source": "psr_i500.pdf",
+    "expected_pages": [
+      29
+    ]
+  },
+  {
+    "question": "Where can I find information about Playing the Riyaz?",
+    "source": "psr_i500.pdf",
+    "expected_pages": [
+      31
+    ]
+  },
+  {
+    "question": "Where can I find information about Playing with Quick Sampling?",
+    "source": "psr_i500.pdf",
+    "expected_pages": [
+      32
+    ]
+  },
+  {
+    "question": "Where can I find information about Recording Your Performance?",
+    "source": "psr_i500.pdf",
+    "expected_pages": [
+      37
+    ]
+  },
+  {
+    "question": "Where can I find information about Audio Playback and Recording?",
+    "source": "psr_i500.pdf",
+    "expected_pages": [
+      40
+    ]
+  },
+  {
+    "question": "Where can I find information about Connecting to Other Devices?",
+    "source": "psr_i500.pdf",
+    "expected_pages": [
+      45
+    ]
+  },
+  {
+    "question": "Where can I find information about Backup and Initialization?",
+    "source": "psr_i500.pdf",
+    "expected_pages": [
+      48
+    ]
+  },
+  {
+    "question": "Where can I find information about Handy Performance Features?",
+    "source": "psr_i500.pdf",
+    "expected_pages": [
+      49
+    ]
+  },
+  {
+    "question": "Where can I find information about Scale Tuning?",
+    "source": "psr_i500.pdf",
+    "expected_pages": [
+      53
+    ]
+  },
+  {
+    "question": "Where can I find information about Voice Settings?",
+    "source": "psr_i500.pdf",
+    "expected_pages": [
+      55
+    ]
+  },
+  {
+    "question": "Where can I find information about Arpeggio Settings?",
+    "source": "psr_i500.pdf",
+    "expected_pages": [
+      56
+    ]
+  },
+  {
+    "question": "Where can I find information about Styles and Riyaz Patterns?",
+    "source": "psr_i500.pdf",
+    "expected_pages": [
+      59
+    ]
+  },
+  {
+    "question": "Where can I find information about Song Settings?",
+    "source": "psr_i500.pdf",
+    "expected_pages": [
+      64
+    ]
+  },
+  {
+    "question": "Where can I find information about The Functions?",
+    "source": "psr_i500.pdf",
+    "expected_pages": [
+      66
+    ]
+  },
+  {
+    "question": "Where can I find information about USB Flash Drive Operations?",
+    "source": "psr_i500.pdf",
+    "expected_pages": [
+      71
+    ]
+  },
+  {
+    "question": "Where can I find information about Quick Start Guide?",
+    "source": "canon_m50_mark2.pdf",
+    "expected_pages": [
+      12
+    ]
+  },
+  {
+    "question": "Where can I find information about Icons in This Guide?",
+    "source": "canon_m50_mark2.pdf",
+    "expected_pages": [
+      16
+    ]
+  },
+  {
+    "question": "Where can I find information about Compatible Cards?",
+    "source": "canon_m50_mark2.pdf",
+    "expected_pages": [
+      18
+    ]
+  },
+  {
+    "question": "Where can I find information about Program AE (P)?",
+    "source": "canon_m50_mark2.pdf",
+    "expected_pages": [
+      29
+    ]
+  },
+  {
+    "question": "Where can I find information about Attaching the Strap?",
+    "source": "canon_m50_mark2.pdf",
+    "expected_pages": [
+      31
+    ]
+  },
+  {
+    "question": "Where can I find information about Dedicated Software?",
+    "source": "canon_m50_mark2.pdf",
+    "expected_pages": [
+      33
+    ]
+  },
+  {
+    "question": "Where can I find information about Downloading the Software Instruction Manual?",
+    "source": "canon_m50_mark2.pdf",
+    "expected_pages": [
+      35
+    ]
+  },
+  {
+    "question": "Where can I find information about Preparation and Basic Operations?",
+    "source": "canon_m50_mark2.pdf",
+    "expected_pages": [
+      36
+    ]
+  },
+  {
+    "question": "Where can I find information about Charging the Battery?",
+    "source": "canon_m50_mark2.pdf",
+    "expected_pages": [
+      37
+    ]
+  },
+  {
+    "question": "Where can I find information about Formatting the Card?",
+    "source": "canon_m50_mark2.pdf",
+    "expected_pages": [
+      40
+    ]
+  },
+  {
+    "question": "Where can I find information about Using the Screen?",
+    "source": "canon_m50_mark2.pdf",
+    "expected_pages": [
+      46
+    ]
+  },
+  {
+    "question": "Where can I find information about Changing the Interface Language?",
+    "source": "canon_m50_mark2.pdf",
+    "expected_pages": [
+      48
+    ]
+  },
+  {
+    "question": "Where can I find information about Battery Level Indicator?",
+    "source": "canon_m50_mark2.pdf",
+    "expected_pages": [
+      50
+    ]
+  },
+  {
+    "question": "Where can I find information about Attaching/Detaching Lenses?",
+    "source": "canon_m50_mark2.pdf",
+    "expected_pages": [
+      51
+    ]
+  },
+  {
+    "question": "Where can I find information about Detaching a Lens?",
+    "source": "canon_m50_mark2.pdf",
+    "expected_pages": [
+      53
+    ]
+  },
+  {
+    "question": "Where can I find information about Attaching/Detaching EF/EF-S Lenses?",
+    "source": "canon_m50_mark2.pdf",
+    "expected_pages": [
+      55
+    ]
+  },
+  {
+    "question": "Where can I find information about Basic Operations?",
+    "source": "canon_m50_mark2.pdf",
+    "expected_pages": [
+      59
+    ]
+  },
+  {
+    "question": "Where can I find information about Holding the Camera?",
+    "source": "canon_m50_mark2.pdf",
+    "expected_pages": [
+      60
+    ]
+  },
+  {
+    "question": "Where can I find information about Shutter Button?",
+    "source": "canon_m50_mark2.pdf",
+    "expected_pages": [
+      61
+    ]
+  },
+  {
+    "question": "Where can I find information about > Info Button?",
+    "source": "canon_m50_mark2.pdf",
+    "expected_pages": [
+      64
+    ]
+  },
+  {
+    "question": "Where can I find information about Multi-Function Button?",
+    "source": "canon_m50_mark2.pdf",
+    "expected_pages": [
+      65
+    ]
+  },
+  {
+    "question": "Where can I find information about Setting the Screen Display Level?",
+    "source": "canon_m50_mark2.pdf",
+    "expected_pages": [
+      66
+    ]
+  },
+  {
+    "question": "Where can I find information about Shooting Mode Guide?",
+    "source": "canon_m50_mark2.pdf",
+    "expected_pages": [
+      69
+    ]
+  },
+  {
+    "question": "Where can I find information about Feature Guide?",
+    "source": "canon_m50_mark2.pdf",
+    "expected_pages": [
+      71
+    ]
+  },
+  {
+    "question": "Where can I find information about Quick Control screen?",
+    "source": "canon_m50_mark2.pdf",
+    "expected_pages": [
+      72
+    ]
+  },
+  {
+    "question": "Where can I find information about Menu Operations and Settings?",
+    "source": "canon_m50_mark2.pdf",
+    "expected_pages": [
+      73
+    ]
+  },
+  {
+    "question": "Where can I find information about Menu Screen?",
+    "source": "canon_m50_mark2.pdf",
+    "expected_pages": [
+      74
+    ]
+  },
+  {
+    "question": "Where can I find information about Menu Setting Procedure?",
+    "source": "canon_m50_mark2.pdf",
+    "expected_pages": [
+      75
+    ]
+  },
+  {
+    "question": "Where can I find information about Dimmed Menu Items?",
+    "source": "canon_m50_mark2.pdf",
+    "expected_pages": [
+      79
+    ]
+  },
+  {
+    "question": "Where can I find information about Quick Control?",
+    "source": "canon_m50_mark2.pdf",
+    "expected_pages": [
+      80
+    ]
+  },
+  {
+    "question": "Where can I find information about During Playback?",
+    "source": "canon_m50_mark2.pdf",
+    "expected_pages": [
+      82
+    ]
+  },
+  {
+    "question": "Where can I find information about Touch-Screen Operation?",
+    "source": "canon_m50_mark2.pdf",
+    "expected_pages": [
+      83
+    ]
+  },
+  {
+    "question": "Where can I find information about Basic Zone?",
+    "source": "canon_m50_mark2.pdf",
+    "expected_pages": [
+      85
+    ]
+  },
+  {
+    "question": "Where can I find information about Scene Intelligent Auto?",
+    "source": "canon_m50_mark2.pdf",
+    "expected_pages": [
+      86
+    ]
+  },
+  {
+    "question": "Where can I find information about Recomposing the Shot?",
+    "source": "canon_m50_mark2.pdf",
+    "expected_pages": [
+      90
+    ]
+  },
+  {
+    "question": "Where can I find information about Scene Icons?",
+    "source": "canon_m50_mark2.pdf",
+    "expected_pages": [
+      91
+    ]
+  },
+  {
+    "question": "Where can I find information about Creative Assist effects?",
+    "source": "canon_m50_mark2.pdf",
+    "expected_pages": [
+      94
+    ]
+  },
+  {
+    "question": "Where can I find information about Hybrid Auto?",
+    "source": "canon_m50_mark2.pdf",
+    "expected_pages": [
+      95
+    ]
+  },
+  {
+    "question": "Where can I find information about Special Scene Mode?",
+    "source": "canon_m50_mark2.pdf",
+    "expected_pages": [
+      97
+    ]
+  },
+  {
+    "question": "Where can I find information about Shooting Mode?",
+    "source": "canon_m50_mark2.pdf",
+    "expected_pages": [
+      99
+    ]
+  },
+  {
+    "question": "Where can I find information about Self Portrait Mode?",
+    "source": "canon_m50_mark2.pdf",
+    "expected_pages": [
+      100
+    ]
+  },
+  {
+    "question": "Where can I find information about Portrait Mode?",
+    "source": "canon_m50_mark2.pdf",
+    "expected_pages": [
+      101
+    ]
+  },
+  {
+    "question": "Where can I find information about Smooth Skin Mode?",
+    "source": "canon_m50_mark2.pdf",
+    "expected_pages": [
+      102
+    ]
+  },
+  {
+    "question": "Where can I find information about Landscape Mode?",
+    "source": "canon_m50_mark2.pdf",
+    "expected_pages": [
+      103
+    ]
+  },
+  {
+    "question": "Where can I find information about Sports Mode?",
+    "source": "canon_m50_mark2.pdf",
+    "expected_pages": [
+      104
+    ]
+  },
+  {
+    "question": "Where can I find information about Panning Mode?",
+    "source": "canon_m50_mark2.pdf",
+    "expected_pages": [
+      105
+    ]
+  },
+  {
+    "question": "Where can I find information about Close-up Mode?",
+    "source": "canon_m50_mark2.pdf",
+    "expected_pages": [
+      107
+    ]
+  },
+  {
+    "question": "Where can I find information about Food Mode?",
+    "source": "canon_m50_mark2.pdf",
+    "expected_pages": [
+      108
+    ]
+  },
+  {
+    "question": "Where can I find information about Night Portrait Mode?",
+    "source": "canon_m50_mark2.pdf",
+    "expected_pages": [
+      109
+    ]
+  },
+  {
+    "question": "Where can I find information about Handheld Night Scene Mode?",
+    "source": "canon_m50_mark2.pdf",
+    "expected_pages": [
+      111
+    ]
+  },
+  {
+    "question": "Where can I find information about HDR Backlight Control Mode?",
+    "source": "canon_m50_mark2.pdf",
+    "expected_pages": [
+      113
+    ]
+  },
+  {
+    "question": "Where can I find information about Silent Mode?",
+    "source": "canon_m50_mark2.pdf",
+    "expected_pages": [
+      114
+    ]
+  },
+  {
+    "question": "Where can I find information about Creative Filters Mode?",
+    "source": "canon_m50_mark2.pdf",
+    "expected_pages": [
+      115
+    ]
+  },
+  {
+    "question": "Where can I find information about Creative Filter Characteristics?",
+    "source": "canon_m50_mark2.pdf",
+    "expected_pages": [
+      118
+    ]
+  },
+  {
+    "question": "Where can I find information about Adjusting the Miniature Effect?",
+    "source": "canon_m50_mark2.pdf",
+    "expected_pages": [
+      120
+    ]
+  },
+  {
+    "question": "Where can I find information about Creative Zone?",
+    "source": "canon_m50_mark2.pdf",
+    "expected_pages": [
+      122
+    ]
+  },
+  {
+    "question": "Where can I find information about Program AE Mode (P)?",
+    "source": "canon_m50_mark2.pdf",
+    "expected_pages": [
+      123
+    ]
+  },
+  {
+    "question": "Where can I find information about Shutter-Priority AE Mode (Tv)?",
+    "source": "canon_m50_mark2.pdf",
+    "expected_pages": [
+      125
+    ]
+  },
+  {
+    "question": "Where can I find information about Aperture-Priority AE Mode (Av)?",
+    "source": "canon_m50_mark2.pdf",
+    "expected_pages": [
+      128
+    ]
+  },
+  {
+    "question": "Where can I find information about Depth-of-Field Preview?",
+    "source": "canon_m50_mark2.pdf",
+    "expected_pages": [
+      131
+    ]
+  },
+  {
+    "question": "Where can I find information about Manual Exposure Mode (M)?",
+    "source": "canon_m50_mark2.pdf",
+    "expected_pages": [
+      132
+    ]
+  }
 ]

@@ -23,19 +23,19 @@ Unlike a generic chatbot, DocLens grounds every response in retrieved evidence a
 
 ## ⭐ Highlights
 
-`Recall@5 = 1.00`  ·  `MRR ≈ 0.77`  ·  `100% local`  ·  `1,050 text + figure chunks indexed`
+`Recall@5 ≈ 0.93 (reranked)`  ·  `MRR ≈ 0.74`  ·  `100-question gold set`  ·  `100% local`
 
 A summary of the improvements and how each was earned:
 
 | Improvement lever | Problem it solved | Outcome |
 |---|---|---|
-| **Evaluation harness** (Recall@K, MRR) | "Is retrieval actually good?" | Recall@5 **1.00**, MRR **≈0.77** (21-question gold set); caught its own gold-label blind spots |
+| **Evaluation harness** (Recall@K, MRR) | "Is retrieval actually good?" | measured on a 100-question gold set; caught its own gold-label blind spots |
 | **Boilerplate removal + page-aware chunking** | header/footer noise polluting chunks & citations | clean, correctly page-cited retrieval |
-| **Two-stage retrieval** (bi- + cross-encoder), **A/B-tested** | ranking quality | reranker measured **no lift** (0.75 vs 0.77) → kept optional (shipped on evidence, not hype) |
+| **Two-stage retrieval** (bi- + cross-encoder), **A/B-tested** | ranking quality | reranker lifts Recall@5 **≈0.86 → ≈0.93** on the broad set (was neutral on 21 hand-Qs — breadth changed the call) |
 | **Caption-and-embed multimodal** | figures/diagrams were unsearchable | figures retrievable; VLM reads the actual image to answer |
 | **Grounded generation + programmatic citations** | hallucination / untraceable answers | refuses when unsupported; every answer cites its source page |
 
-> Metrics are on a curated 21-question gold set (pages verified against the source manuals) — directional, built to *drive* decisions rather than to be statistically conclusive.
+> Metrics: 100-question gold set — 21 hand-authored (answer pages verified against the manuals) + 79 derived from section headings (higher wording overlap → optimistic). ~±3–5% run-to-run variance. Directional, built to *drive* decisions rather than be statistically conclusive.
 
 ---
 
@@ -98,7 +98,16 @@ A retrieval harness ([evaluation/retrieval_eval.py](evaluation/retrieval_eval.py
 - **Recall@K** — is a correct page in the top-K? (found-at-all)
 - **MRR** — reciprocal rank of the first correct hit (ranked-well)
 
-On a 21-question gold set (answer pages verified against the source manuals): **Recall@5 = 1.00** (the retriever finds a correct page every time) and **MRR ≈ 0.77** (13/21 correct at rank 1). The set is intentionally small — directional, built to *drive* decisions rather than be statistically conclusive — and it already earned its keep: an A/B test showed the cross-encoder reranker gave **no lift** over the strong bi-encoder baseline (MRR 0.75 vs 0.77, and it even dropped one answer out of the top-5), so it's kept **optional** rather than shipped by default.
+On a **100-question gold set** (21 hand-authored with manually-verified pages + 79 auto-derived from section headings, see [generate_eval.py](evaluation/generate_eval.py)):
+
+| Retriever | Recall@5 | MRR |
+|-----------|----------|-----|
+| Bi-encoder (baseline) | ≈ 0.83–0.89 | ≈ 0.69–0.74 |
+| + Cross-encoder rerank | ≈ 0.93–0.94 | ≈ 0.74–0.75 |
+
+Two honest caveats: metrics show **~±3–5% run-to-run variance** (borderline ANN rankings flip), and heading-derived questions overlap their page's wording, so treat them as an optimistic upper bound.
+
+The interesting result: on this broad set the **cross-encoder reranker gives a clear recall lift** (≈0.86 → ≈0.93) — the *opposite* of what a smaller 21-question set showed (where it was neutral). A good reminder that **the size and breadth of your eval set can change your conclusions** — which is exactly why the harness exists.
 
 ---
 
