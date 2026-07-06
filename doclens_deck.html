@@ -1,0 +1,528 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>DocLens — Local Multimodal RAG · Technical Deep-Dive</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;700&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+/* ===========================================
+   THEME — Neo-Grid Bold (Editorial Grid)
+   =========================================== */
+:root{
+  --paper:#F5F4EF; --bg:#ECECE8; --ink:#0A0A0A; --lemon:#E6FF3D; --muted:#8A8A85;
+  --stage-bg:#1A1A1A; --slide-bg:#ECECE8;
+  --ease:cubic-bezier(.16,1,.3,1);
+}
+*{margin:0;padding:0;box-sizing:border-box;}
+
+/* ===========================================
+   FIXED 16:9 STAGE — viewport-base.css (verbatim)
+   =========================================== */
+html,body{width:100%;height:100%;margin:0;overflow:hidden;background:var(--stage-bg,#000);}
+.deck-viewport{position:fixed;inset:0;overflow:hidden;background:var(--stage-bg,#000);}
+.deck-stage{position:absolute;left:0;top:0;width:1920px;height:1080px;overflow:hidden;transform-origin:0 0;background:var(--slide-bg,#fff);}
+.slide{position:absolute;inset:0;width:1920px;height:1080px;overflow:hidden;display:block;visibility:hidden;opacity:0;pointer-events:none;background:var(--slide-bg,#fff);}
+.slide.active,.slide.visible{visibility:visible;opacity:1;pointer-events:auto;z-index:1;}
+img,video,canvas,svg{max-width:100%;max-height:100%;}
+.deck-controls{position:fixed;left:50%;bottom:22px;transform:translateX(-50%);z-index:1000;}
+@media print{html,body{width:1920px;height:auto;overflow:visible;background:#fff;}.deck-viewport{position:static;overflow:visible;background:#fff;}.deck-stage{position:static;width:auto;height:auto;transform:none!important;background:none;}.slide{position:relative;display:block!important;visibility:visible!important;opacity:1!important;pointer-events:auto!important;width:1920px;height:1080px;break-after:page;page-break-after:always;}.slide:last-child{break-after:auto;page-break-after:auto;}.deck-controls{display:none!important;}}
+@media (prefers-reduced-motion:reduce){*,*::before,*::after{animation-duration:.01ms!important;transition-duration:.2s!important;}}
+
+/* ===========================================
+   GRID SYSTEM — 12 col × 8 row, 40px inset
+   =========================================== */
+.frame{position:absolute;inset:40px;display:grid;grid-template-columns:repeat(12,1fr);grid-template-rows:repeat(8,1fr);gap:12px;}
+.card{background:var(--paper);color:var(--ink);position:relative;overflow:hidden;padding:34px 38px;display:flex;flex-direction:column;}
+.card.ink{background:var(--ink);color:var(--paper);}
+.card.lemon{background:var(--lemon);color:var(--ink);}
+.card.pad-sm{padding:24px 28px;}.card.pad-lg{padding:40px 44px;}
+.center{justify-content:center;}.between{justify-content:space-between;}
+
+/* ===========================================
+   TYPOGRAPHY
+   =========================================== */
+.kicker{font-family:'JetBrains Mono',monospace;font-weight:500;font-size:22px;letter-spacing:.1em;text-transform:uppercase;}
+.kicker.sm{font-size:16px;letter-spacing:.12em;}
+.mut{opacity:.72;}
+h1.display{font-family:'Space Grotesk',sans-serif;font-weight:700;font-size:150px;line-height:.86;letter-spacing:-.04em;text-transform:uppercase;}
+h2.title{font-family:'Space Grotesk',sans-serif;font-weight:700;font-size:76px;line-height:.94;letter-spacing:-.02em;text-transform:uppercase;}
+h3.sub{font-family:'Space Grotesk',sans-serif;font-weight:700;font-size:44px;line-height:1;letter-spacing:-.01em;text-transform:uppercase;}
+h4.ch{font-family:'Space Grotesk',sans-serif;font-weight:700;font-size:30px;line-height:1.05;letter-spacing:-.005em;text-transform:uppercase;}
+p.body{font-family:'Space Grotesk',sans-serif;font-weight:400;font-size:27px;line-height:1.34;}
+p.body.sm{font-size:22px;line-height:1.42;}
+.secnum{font-family:'Space Grotesk',sans-serif;font-weight:700;font-size:300px;line-height:.8;letter-spacing:-.05em;}
+.stat{font-family:'Space Grotesk',sans-serif;font-weight:700;font-size:150px;line-height:.86;letter-spacing:-.03em;}
+.stat.lg{font-size:210px;}.stat.sm{font-size:92px;}
+.statlab{font-family:'JetBrains Mono',monospace;font-size:19px;letter-spacing:.08em;text-transform:uppercase;margin-top:10px;}
+mark{background:var(--lemon);color:var(--ink);padding:0 8px;}
+em{font-style:normal;color:var(--ink);text-decoration:underline;text-decoration-color:var(--lemon);text-decoration-thickness:5px;text-underline-offset:3px;}
+.card.ink em{color:var(--lemon);text-decoration:none;}
+.card.lemon em{color:var(--ink);text-decoration-color:var(--ink);}
+b{font-weight:700;}
+
+/* chrome */
+.corner{position:absolute;top:20px;right:20px;display:grid;grid-template-columns:1fr 1fr;gap:4px;width:34px;height:34px;}
+.corner i{background:currentColor;}.corner i:nth-child(3){background:transparent;}
+.pagenum{font-family:'JetBrains Mono',monospace;font-size:22px;letter-spacing:.04em;}
+.blockmark{display:grid;grid-template-columns:1fr 1fr;gap:5px;width:60px;height:60px;}
+.blockmark i{background:currentColor;}.blockmark i:nth-child(2),.blockmark i:nth-child(3){background:var(--lemon);}
+
+/* lists */
+ul.ticks{list-style:none;display:flex;flex-direction:column;gap:16px;margin-top:8px;}
+ul.ticks li{font-family:'Space Grotesk',sans-serif;font-size:25px;line-height:1.25;padding-left:40px;position:relative;}
+ul.ticks li::before{content:"▪";position:absolute;left:0;top:-2px;color:var(--ink);font-size:26px;}
+.card.ink ul.ticks li::before{color:var(--lemon);}
+
+/* flow / arrows */
+.flow{display:flex;align-items:stretch;gap:12px;}
+.flow[style*="column"]{gap:10px;}
+.step{flex:1;background:var(--paper);color:var(--ink);display:flex;flex-direction:column;justify-content:center;padding:15px 20px;position:relative;}
+.step .n{font-family:'JetBrains Mono',monospace;font-size:14px;letter-spacing:.1em;opacity:.6;}
+.step .t{font-family:'Space Grotesk',sans-serif;font-weight:700;font-size:24px;text-transform:uppercase;line-height:1.02;margin-top:6px;}
+.step .d{font-family:'Space Grotesk',sans-serif;font-size:16px;line-height:1.28;margin-top:5px;opacity:.8;}
+.step.on{background:var(--lemon);}
+.arrowh{align-self:center;font-family:'JetBrains Mono',monospace;font-size:30px;opacity:.55;}
+
+/* tables */
+table.matrix{width:100%;border-collapse:collapse;margin-top:auto;}
+table.matrix th,table.matrix td{padding:16px 20px;text-align:left;border-bottom:1.5px solid var(--ink);border-right:1.5px solid var(--ink);font-size:23px;font-family:'Space Grotesk',sans-serif;}
+table.matrix td:last-child,table.matrix th:last-child{border-right:none;}
+table.matrix thead th{background:var(--ink);color:var(--paper);font-family:'JetBrains Mono',monospace;font-size:15px;letter-spacing:.1em;text-transform:uppercase;font-weight:500;border-right-color:#333;}
+table.matrix tbody tr:last-child td{border-bottom:none;}
+.pill{font-family:'JetBrains Mono',monospace;font-size:16px;letter-spacing:.06em;text-transform:uppercase;padding:5px 12px;display:inline-block;}
+.pill.yes{background:var(--lemon);color:var(--ink);}
+.pill.no{background:var(--ink);color:var(--paper);}
+.pill.part{background:var(--paper);color:var(--ink);border:1.5px solid var(--ink);}
+.card.ink .pill.part{background:transparent;color:var(--paper);border-color:var(--paper);}
+
+/* bars */
+.bars{display:flex;align-items:flex-end;gap:34px;height:100%;padding-top:20px;}
+.barcol{display:flex;flex-direction:column;align-items:center;justify-content:flex-end;height:100%;gap:12px;}
+.bar{width:96px;position:relative;}
+.bar.a{background:var(--ink);}
+.card.ink .bar.a{background:var(--paper);}
+.bar.b{background:var(--lemon);border:2px solid var(--ink);}
+.card.ink .bar.b{border-color:var(--paper);}
+.bar .v{position:absolute;top:-40px;left:0;right:0;text-align:center;font-family:'Space Grotesk',sans-serif;font-weight:700;font-size:34px;}
+.barx{font-family:'JetBrains Mono',monospace;font-size:16px;letter-spacing:.06em;text-transform:uppercase;text-align:center;}
+
+/* ===========================================
+   REVEAL ANIMATION (per active slide)
+   =========================================== */
+.reveal{opacity:0;transform:translateY(26px);transition:opacity .6s var(--ease),transform .6s var(--ease);}
+.slide.visible .reveal{opacity:1;transform:none;}
+.slide.visible .reveal:nth-child(1){transition-delay:.05s;}
+.slide.visible .reveal:nth-child(2){transition-delay:.13s;}
+.slide.visible .reveal:nth-child(3){transition-delay:.21s;}
+.slide.visible .reveal:nth-child(4){transition-delay:.29s;}
+.slide.visible .reveal:nth-child(5){transition-delay:.37s;}
+.slide.visible .reveal:nth-child(6){transition-delay:.45s;}
+.slide.visible .reveal:nth-child(7){transition-delay:.53s;}
+.slide.visible .reveal:nth-child(8){transition-delay:.61s;}
+.slide.visible .grow{transform:scaleY(0);transform-origin:bottom;transition:transform .9s var(--ease) .3s;}
+.slide.visible.active .grow{transform:scaleY(1);}
+.grow{transform:scaleY(0);transform-origin:bottom;}
+
+/* progress chrome */
+.hud{position:fixed;z-index:1000;font-family:'JetBrains Mono',monospace;}
+/* single page-number: a small lemon pill anchored bottom-RIGHT, visible on any slide */
+.hud.count{right:22px;bottom:18px;font-size:16px;letter-spacing:.08em;font-weight:500;background:var(--lemon);color:var(--ink);padding:8px 14px;}
+.hud.bar{left:0;top:0;height:5px;background:var(--lemon);width:0;transition:width .4s var(--ease);}
+/* hide the per-slide bottom-left page tags (they overlapped content) */
+.frame > .pagenum{display:none;}
+.hint{position:fixed;left:26px;bottom:20px;z-index:1000;font-family:'JetBrains Mono',monospace;color:#888;font-size:15px;letter-spacing:.06em;transition:opacity .6s var(--ease);}
+.hint.dim{opacity:0;}
+</style>
+</head>
+<body>
+<div class="hud bar" id="pbar"></div>
+<div class="deck-viewport">
+<main class="deck-stage" id="deckStage">
+
+<!-- ============ 01 · COVER ============ -->
+<section class="slide active">
+  <div class="frame">
+    <div class="card ink reveal" style="grid-column:1/span 12;grid-row:1/span 1;flex-direction:row;align-items:center;justify-content:space-between;padding:0 34px;">
+      <span class="kicker">DocLens — Local Multimodal RAG</span>
+      <span class="kicker" style="color:var(--lemon)">Technical Deep-Dive</span>
+    </div>
+    <div class="card reveal center" style="grid-column:1/span 8;grid-row:2/span 6;">
+      <span class="kicker" style="background:var(--lemon);width:max-content;padding:8px 16px;margin-bottom:24px;">Grounded · Cited · 100% Local</span>
+      <h1 class="display">Doc<em>Lens</em></h1>
+      <p class="body" style="margin-top:30px;max-width:780px;">Retrieval-augmented answers over technical PDF manuals — including their <b>figures</b> — with every claim traced to a source page, running entirely on-device.</p>
+    </div>
+    <div class="card lemon reveal center" style="grid-column:9/span 4;grid-row:2/span 3;">
+      <div class="stat lg">0.93</div>
+      <div class="statlab">Recall@5 · reranked</div>
+    </div>
+    <div class="card ink reveal center" style="grid-column:9/span 4;grid-row:5/span 3;">
+      <div class="stat" style="color:var(--lemon)">0.74</div>
+      <div class="statlab">MRR · first correct hit</div>
+      <div class="statlab mut" style="margin-top:12px;opacity:.6;">on a 100-question gold set</div>
+    </div>
+    <div class="card reveal" style="grid-column:1/span 12;grid-row:8/span 1;flex-direction:row;align-items:center;justify-content:space-between;padding:0 34px;">
+      <span class="pagenum"><span style="color:var(--ink)">■</span> github.com/deepaksinghcv/doclens-multimodal-rag</span>
+      <span class="pagenum mut">PyMuPDF · BGE · ChromaDB · Qwen3 + Qwen-VL · Python 3.12</span>
+    </div>
+  </div>
+</section>
+
+<!-- ============ 02 · THE PROBLEM ============ -->
+<section class="slide">
+  <div class="frame">
+    <div class="card ink reveal" style="grid-column:1/span 5;grid-row:1/span 8;">
+      <span class="corner"><i></i><i></i><i></i><i></i></span>
+      <span class="kicker mut">01 — Motivation</span>
+      <h2 class="title" style="margin-top:auto;">Why<br>RAG?</h2>
+      <p class="body sm mut" style="margin-top:24px;">An LLM only knows its training data — frozen, unsourced, and prone to confident fabrication on domain-specific questions.</p>
+    </div>
+    <div class="card lemon reveal" style="grid-column:6/span 7;grid-row:1/span 3;">
+      <h4 class="ch">The failure mode</h4>
+      <p class="body" style="margin-top:14px;">Ask a vanilla chatbot “how do I clean this filter?” and it <mark>invents plausible steps</mark> — no source, no way to verify, wrong often enough to be dangerous in a manual.</p>
+    </div>
+    <div class="card reveal" style="grid-column:6/span 7;grid-row:4/span 5;">
+      <span class="kicker sm mut">Technical documents make it harder</span>
+      <ul class="ticks" style="margin-top:20px;">
+        <li>Long context — hundreds of pages per manual</li>
+        <li>Procedural steps that must stay in order</li>
+        <li>Tables, figures & diagrams carry real meaning</li>
+        <li>Cross-page references and dense layout</li>
+      </ul>
+      <p class="body" style="margin-top:auto;"><b>RAG’s answer:</b> inject fresh, private, <em>citable</em> evidence at inference time. The model shifts from <b>recalling facts</b> (hallucinates) to <b>reading provided evidence</b> (reliable, auditable).</p>
+    </div>
+    <div class="pagenum" style="position:absolute;left:0;bottom:0;background:var(--paper);padding:14px 22px;">02 / 13</div>
+  </div>
+</section>
+
+<!-- ============ 03 · TWO TIME AXES ============ -->
+<section class="slide">
+  <div class="frame">
+    <div class="card reveal" style="grid-column:1/span 12;grid-row:1/span 1;flex-direction:row;align-items:center;justify-content:space-between;padding:0 34px;">
+      <span class="kicker">02 — Architecture</span>
+      <span class="kicker mut">The one mental model that matters</span>
+    </div>
+    <div class="card ink reveal center" style="grid-column:1/span 12;grid-row:2/span 1;">
+      <h3 class="sub">A RAG system runs on <em>two separate time axes</em></h3>
+    </div>
+    <div class="card reveal" style="grid-column:1/span 6;grid-row:3/span 6;padding-bottom:56px;">
+      <span class="kicker sm" style="background:var(--ink);color:var(--paper);width:max-content;padding:6px 12px;">Axis 1 · Ingestion — offline, once</span>
+      <div class="flow" style="flex-direction:column;margin-top:16px;">
+        <div class="step"><span class="n">01</span><span class="t">Parse</span><span class="d">PyMuPDF → per-page text</span></div>
+        <div class="step"><span class="n">02</span><span class="t">Clean</span><span class="d">strip repeated headers/footers</span></div>
+        <div class="step"><span class="n">03</span><span class="t">Chunk</span><span class="d">page-aware, overlapping windows</span></div>
+        <div class="step on"><span class="n">04</span><span class="t">Embed → Store</span><span class="d">BGE vectors → ChromaDB</span></div>
+      </div>
+      <p class="body sm" style="margin-top:16px;"><b>Key insight:</b> after ingestion the PDF is never read again — knowledge lives as <code>(vector, text, page)</code> rows.</p>
+    </div>
+    <div class="card ink reveal" style="grid-column:7/span 6;grid-row:3/span 6;padding-bottom:56px;">
+      <span class="kicker sm" style="background:var(--lemon);color:var(--ink);width:max-content;padding:6px 12px;">Axis 2 · Query — online, per question</span>
+      <div class="flow" style="flex-direction:column;margin-top:16px;">
+        <div class="step"><span class="n">05</span><span class="t">Embed query</span><span class="d">same model + BGE prefix</span></div>
+        <div class="step"><span class="n">06</span><span class="t">Retrieve + Rerank</span><span class="d">top-K nearest → cross-encoder</span></div>
+        <div class="step"><span class="n">07</span><span class="t">Augment</span><span class="d">stuff evidence into the prompt</span></div>
+        <div class="step on"><span class="n">08</span><span class="t">Generate</span><span class="d">Qwen writes grounded answer</span></div>
+      </div>
+      <p class="body sm mut" style="margin-top:16px;"><b>Invariant:</b> query and chunks must share the <em>same</em> embedding model — else different space, garbage similarity.</p>
+    </div>
+    <div class="pagenum" style="position:absolute;left:0;bottom:0;background:var(--lemon);padding:14px 22px;">03 / 13</div>
+  </div>
+</section>
+
+<!-- ============ 04 · INGESTION DETAIL ============ -->
+<section class="slide">
+  <div class="frame">
+    <div class="card lemon reveal" style="grid-column:1/span 4;grid-row:1/span 8;">
+      <span class="kicker mut">03 — Ingestion</span>
+      <h2 class="title" style="margin-top:auto;">Clean<br>in,<br>clean<br>out</h2>
+      <p class="body sm" style="margin-top:24px;">Retrieval quality is decided before the LLM ever runs. Every stage is single-purpose and testable.</p>
+    </div>
+    <div class="card reveal" style="grid-column:5/span 8;grid-row:1/span 4;">
+      <h4 class="ch">Chunking — the highest-leverage choice</h4>
+      <p class="body" style="margin-top:14px;">Bounded <b>above</b> by the embedder’s <mark>512-token limit</mark> (longer = silently truncated) and <b>below</b> by needing enough context to be self-contained. ~250-word windows with ~15% overlap keep procedures intact across boundaries.</p>
+    </div>
+    <div class="card ink reveal" style="grid-column:5/span 4;grid-row:5/span 4;">
+      <h4 class="ch">Boilerplate removal</h4>
+      <p class="body sm mut" style="margin-top:12px;">Running headers repeat across pages; content doesn’t. Normalize lines (drop digits), count page frequency, strip the repeaters — model-free & per-document.</p>
+    </div>
+    <div class="card reveal" style="grid-column:9/span 4;grid-row:5/span 4;">
+      <h4 class="ch">Idempotent index</h4>
+      <p class="body sm" style="margin-top:12px;">Deterministic content-hash IDs + <b>delete-then-upsert</b> per source → re-ingesting a PDF updates rows instead of duplicating them.</p>
+    </div>
+    <div class="pagenum" style="position:absolute;left:0;bottom:0;background:var(--paper);padding:14px 22px;">04 / 13</div>
+  </div>
+</section>
+
+<!-- ============ 05 · BI vs CROSS ENCODER ============ -->
+<section class="slide">
+  <div class="frame">
+    <div class="card reveal" style="grid-column:1/span 12;grid-row:1/span 1;flex-direction:row;align-items:center;justify-content:space-between;padding:0 34px;">
+      <span class="kicker">04 — Retrieval</span>
+      <span class="kicker mut">Two-stage: recall, then precision</span>
+    </div>
+    <div class="card reveal" style="grid-column:1/span 5;grid-row:2/span 4;">
+      <h4 class="ch">Bi-encoder</h4>
+      <p class="body sm" style="margin-top:12px;">Encodes query & chunk <b>separately</b> into vectors, compares by cosine. Precompute all chunks once → <em>fast & indexable</em>. Cost: less accurate — the two never “meet”.</p>
+    </div>
+    <div class="card ink reveal" style="grid-column:1/span 5;grid-row:6/span 3;">
+      <h4 class="ch">Cross-encoder</h4>
+      <p class="body sm mut" style="margin-top:12px;">Reads (query, chunk) <b>together</b> → one relevance score. Far more accurate, but nothing to precompute — must run per pair. <em>Unusable over the whole corpus.</em></p>
+    </div>
+    <div class="card lemon reveal" style="grid-column:6/span 7;grid-row:2/span 7;">
+      <h4 class="ch">The resolution — chain them</h4>
+      <p class="body" style="margin-top:14px;">Cheap bi-encoder casts a <b>wide net</b> (top-20). The expensive cross-encoder <b>re-scores just those 20</b> and pulls the true answer to the top.</p>
+      <table class="matrix">
+        <thead><tr><th></th><th>Bi-encoder</th><th>Cross-encoder</th></tr></thead>
+        <tbody>
+          <tr><td>Encodes</td><td>separately</td><td>jointly</td></tr>
+          <tr><td>Speed</td><td><span class="pill yes">fast</span></td><td><span class="pill no">slow</span></td></tr>
+          <tr><td>Precomputable</td><td><span class="pill yes">yes</span></td><td><span class="pill no">no</span></td></tr>
+          <tr><td>Role</td><td>recall (net)</td><td>precision (sort)</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <div class="pagenum" style="position:absolute;left:0;bottom:0;background:var(--lemon);padding:14px 22px;">05 / 13</div>
+  </div>
+</section>
+
+<!-- ============ 06 · HNSW / ANN ============ -->
+<section class="slide">
+  <div class="frame">
+    <div class="card ink reveal" style="grid-column:1/span 5;grid-row:1/span 8;">
+      <span class="kicker mut">05 — Vector search</span>
+      <h2 class="title" style="margin-top:auto;">Approx.<br>≠<br>random</h2>
+      <p class="body sm mut" style="margin-top:24px;">HNSW is an <em>Approximate</em> Nearest-Neighbor index: it walks a navigable graph instead of scanning all vectors — trading a little recall for big speed.</p>
+    </div>
+    <div class="card reveal" style="grid-column:6/span 7;grid-row:1/span 4;">
+      <h4 class="ch">A variance mystery, debugged</h4>
+      <p class="body" style="margin-top:12px;">Re-running the eval gave <b>Recall 0.89 then 0.83</b>. Not float noise, not the embeddings — those were <mark>bit-identical</mark>. Within one process: perfectly stable.</p>
+    </div>
+    <div class="card lemon reveal" style="grid-column:6/span 7;grid-row:5/span 4;">
+      <h4 class="ch">The cause — across processes</h4>
+      <p class="body sm" style="margin-top:12px;">HNSW’s <b>multi-threaded graph traversal</b> explores candidates in an order that depends on thread scheduling, which differs between process launches. For chunks sitting right at the rank-5 boundary, that flips them in or out.</p>
+      <p class="body sm" style="margin-top:14px;"><b>Fix:</b> widen search (<code>ef</code>) → closer to exact, more stable <em>and</em> higher recall; or brute-force exact search for the eval.</p>
+    </div>
+    <div class="pagenum" style="position:absolute;left:0;bottom:0;background:var(--paper);padding:14px 22px;">06 / 13</div>
+  </div>
+</section>
+
+<!-- ============ 07 · MULTIMODAL ============ -->
+<section class="slide">
+  <div class="frame">
+    <div class="card reveal" style="grid-column:1/span 12;grid-row:1/span 1;flex-direction:row;align-items:center;justify-content:space-between;padding:0 34px;">
+      <span class="kicker">06 — Multimodal</span>
+      <span class="kicker mut">Caption-and-embed, not joint CLIP</span>
+    </div>
+    <div class="card reveal center" style="grid-column:1/span 12;grid-row:2/span 3;">
+      <div class="flow">
+        <div class="step"><span class="n">A</span><span class="t">Extract figure</span><span class="d">PyMuPDF, size-filtered</span></div>
+        <div class="arrowh">→</div>
+        <div class="step on"><span class="n">B</span><span class="t">Caption (VLM)</span><span class="d">Qwen-VL describes the diagram</span></div>
+        <div class="arrowh">→</div>
+        <div class="step"><span class="n">C</span><span class="t">Embed caption</span><span class="d">into the SAME text index</span></div>
+        <div class="arrowh">→</div>
+        <div class="step"><span class="n">D</span><span class="t">Answer over image</span><span class="d">pass real figure to Qwen-VL</span></div>
+      </div>
+    </div>
+    <div class="card ink reveal" style="grid-column:1/span 6;grid-row:5/span 4;">
+      <h4 class="ch">Why caption-and-embed?</h4>
+      <p class="body sm mut" style="margin-top:12px;">One <em>unified</em> index → one retrieval path, one eval harness. A VLM’s caption of a diagram (“SD-card slot labelled 1, rectangular with a triangle”) retrieves far better than a raw CLIP image vector for technical content.</p>
+    </div>
+    <div class="card lemon reveal" style="grid-column:7/span 6;grid-row:5/span 4;">
+      <h4 class="ch">Verified live</h4>
+      <p class="body sm" style="margin-top:12px;">“Where is the SD-card slot?” → retrieves the <b>figure chunk</b>, routes to the vision model with the <b>actual image</b> attached, and answers by <mark>reading the diagram</mark>. Text queries stay on the text model.</p>
+    </div>
+    <div class="pagenum" style="position:absolute;left:0;bottom:0;background:var(--lemon);padding:14px 22px;">07 / 13</div>
+  </div>
+</section>
+
+<!-- ============ 08 · GROUNDED GENERATION ============ -->
+<section class="slide">
+  <div class="frame">
+    <div class="card lemon reveal" style="grid-column:1/span 4;grid-row:1/span 8;">
+      <span class="kicker mut">07 — Generation</span>
+      <h2 class="title" style="margin-top:auto;">Read,<br>don’t<br>recall</h2>
+      <p class="body sm" style="margin-top:24px;">The prompt is where reliability lives — narrow the model’s job to “synthesize this evidence”.</p>
+    </div>
+    <div class="card ink reveal" style="grid-column:5/span 8;grid-row:1/span 4;">
+      <h4 class="ch">The grounding contract</h4>
+      <p class="body" style="margin-top:14px;">System prompt: <em>answer using ONLY the provided context; if it isn’t there, say you couldn’t find it.</em> Plus <mark>temperature 0</mark> — fidelity to evidence, not creativity. That single instruction is the main defense against hallucination.</p>
+    </div>
+    <div class="card reveal" style="grid-column:5/span 4;grid-row:5/span 4;">
+      <h4 class="ch">Citations are programmatic</h4>
+      <p class="body sm" style="margin-top:12px;">Page numbers come from the <b>retrieved chunk’s metadata</b>, in code — never scraped from the model’s prose. Trusting the LLM to report its source is itself a hallucination vector.</p>
+    </div>
+    <div class="card reveal" style="grid-column:9/span 4;grid-row:5/span 4;">
+      <h4 class="ch">Refuses on cue</h4>
+      <p class="body sm" style="margin-top:12px;">“Capital of India?” against 1,050 chunks → <mark>“couldn’t find it in the manual”</mark>. Grounding holds even under a mountain of tempting context.</p>
+    </div>
+    <div class="pagenum" style="position:absolute;left:0;bottom:0;background:var(--paper);padding:14px 22px;">08 / 13</div>
+  </div>
+</section>
+
+<!-- ============ 09 · SECTION DIVIDER · EVAL ============ -->
+<section class="slide">
+  <div class="frame">
+    <div class="card ink reveal center" style="grid-column:1/span 7;grid-row:1/span 8;">
+      <span class="kicker mut">08 — Evaluation</span>
+      <div class="secnum" style="color:var(--lemon);margin-top:10px;">08</div>
+      <h3 class="sub" style="margin-top:10px;">Build the measurement<br><em>first</em>.</h3>
+    </div>
+    <div class="card lemon reveal center" style="grid-column:8/span 5;grid-row:1/span 4;">
+      <h4 class="ch">Retrieval metrics</h4>
+      <ul class="ticks" style="margin-top:16px;">
+        <li><b>Recall@K</b> — is the right page in the top-K at all?</li>
+        <li><b>MRR</b> — how high does the first correct hit rank?</li>
+      </ul>
+    </div>
+    <div class="card reveal center" style="grid-column:8/span 5;grid-row:5/span 4;">
+      <h4 class="ch">100-question gold set</h4>
+      <p class="body sm" style="margin-top:12px;">21 hand-authored (pages verified against the manuals) + 79 auto-derived from section headings. Evaluate <b>retrieval separately from generation</b> — most “dumb LLM” complaints are really retrieval failures.</p>
+    </div>
+    <div class="pagenum invert" style="position:absolute;left:0;bottom:0;background:var(--ink);color:var(--paper);padding:14px 22px;">09 / 13</div>
+  </div>
+</section>
+
+<!-- ============ 10 · THE EVAL-DRIVEN DECISION ============ -->
+<section class="slide">
+  <div class="frame">
+    <div class="card reveal" style="grid-column:1/span 12;grid-row:1/span 1;flex-direction:row;align-items:center;justify-content:space-between;padding:0 34px;">
+      <span class="kicker">09 — The decision that matters</span>
+      <span class="kicker mut">Measure → decline → re-measure → ship</span>
+    </div>
+    <div class="card reveal" style="grid-column:1/span 6;grid-row:2/span 7;">
+      <h4 class="ch">Should we ship the reranker?</h4>
+      <p class="body sm" style="margin-top:14px;"><b>At n=21</b> (hand-authored): the reranker was <em>neutral</em> — even hurt a case. Conclusion: don’t ship complexity the data doesn’t justify.</p>
+      <p class="body sm" style="margin-top:14px;"><b>At n=100</b> (broader, harder): the reranker gives a <mark>clear recall lift</mark> — the opposite result. So we shipped it, and wired it into the live pipeline.</p>
+      <p class="body sm mut" style="margin-top:14px;">Lesson: the <b>size & breadth of your eval set can flip your conclusion</b>. That’s exactly why the harness exists.</p>
+    </div>
+    <div class="card ink reveal between" style="grid-column:7/span 6;grid-row:2/span 7;">
+      <span class="kicker sm mut">Recall@5 · 100-question set</span>
+      <div class="bars">
+        <div class="barcol"><div class="bar a grow" style="height:56%;"><span class="v" style="color:var(--paper)">0.86</span></div><span class="barx" style="color:var(--paper)">Bi-encoder</span></div>
+        <div class="barcol"><div class="bar b grow" style="height:74%;"><span class="v" style="color:var(--lemon)">0.93</span></div><span class="barx" style="color:var(--lemon)">+ Reranker</span></div>
+      </div>
+      <p class="body sm mut">Reported as ranges — ~±3–5% run-to-run variance, traced to HNSW (not assumed to be randomness).</p>
+    </div>
+    <div class="pagenum" style="position:absolute;left:0;bottom:0;background:var(--lemon);padding:14px 22px;">10 / 13</div>
+  </div>
+</section>
+
+<!-- ============ 11 · RESULTS ============ -->
+<section class="slide">
+  <div class="frame">
+    <div class="card ink reveal" style="grid-column:1/span 12;grid-row:1/span 1;flex-direction:row;align-items:center;justify-content:space-between;padding:0 34px;">
+      <span class="kicker" style="color:var(--lemon)">10 — Results</span>
+      <span class="kicker mut">Directional · 100-question gold set</span>
+    </div>
+    <div class="card lemon reveal center" style="grid-column:1/span 4;grid-row:2/span 4;">
+      <div class="stat">0.93</div><div class="statlab">Recall@5 · reranked</div>
+    </div>
+    <div class="card reveal center" style="grid-column:5/span 4;grid-row:2/span 4;">
+      <div class="stat">0.74</div><div class="statlab">MRR · first-hit rank</div>
+    </div>
+    <div class="card ink reveal center" style="grid-column:9/span 4;grid-row:2/span 4;">
+      <div class="stat sm" style="color:var(--lemon)">1,050</div><div class="statlab">text + figure chunks indexed</div>
+    </div>
+    <div class="card reveal" style="grid-column:1/span 8;grid-row:6/span 3;">
+      <span class="kicker sm mut">Fully-local stack</span>
+      <p class="body" style="margin-top:14px;">PyMuPDF · BAAI/bge-small-en-v1.5 · bge-reranker-base · ChromaDB · Qwen3 & Qwen2.5-VL via Ollama · Python 3.12. <b>No external APIs; runs on consumer hardware.</b></p>
+    </div>
+    <div class="card lemon reveal center" style="grid-column:9/span 4;grid-row:6/span 3;">
+      <div class="stat sm">100%</div><div class="statlab">local · private · offline</div>
+    </div>
+    <div class="pagenum invert" style="position:absolute;left:0;bottom:0;background:var(--ink);color:var(--paper);padding:14px 22px;">11 / 13</div>
+  </div>
+</section>
+
+<!-- ============ 12 · WHAT IT DEMONSTRATES ============ -->
+<section class="slide">
+  <div class="frame">
+    <div class="card reveal" style="grid-column:1/span 5;grid-row:1/span 8;">
+      <span class="kicker mut">11 — Takeaways</span>
+      <h2 class="title" style="margin-top:auto;">System<br>design ><br>bigger<br>models</h2>
+    </div>
+    <div class="card ink reveal" style="grid-column:6/span 7;grid-row:1/span 4;">
+      <h4 class="ch">The habit worth stealing</h4>
+      <p class="body" style="margin-top:14px;"><mark>Build the eval first, then let it make the call.</mark> The reranker shipped only after data justified it — visible in the git history as <em>measure → decline → re-measure → ship</em>.</p>
+    </div>
+    <div class="card lemon reveal" style="grid-column:6/span 7;grid-row:5/span 4;">
+      <span class="kicker sm">Diagnose before you fix</span>
+      <ul class="ticks" style="margin-top:16px;">
+        <li>High recall + low MRR ⇒ a <b>ranking</b> problem, not recall</li>
+        <li>Reranker “regressed” ⇒ suspect the <b>metric</b>, not the model</li>
+        <li>Run-to-run variance ⇒ traced to <b>HNSW</b>, not assumed noise</li>
+      </ul>
+    </div>
+    <div class="pagenum" style="position:absolute;left:0;bottom:0;background:var(--paper);padding:14px 22px;">12 / 13</div>
+  </div>
+</section>
+
+<!-- ============ 13 · CLOSING ============ -->
+<section class="slide">
+  <div class="frame">
+    <div class="card ink reveal center" style="grid-column:1/span 12;grid-row:1/span 6;">
+      <span class="blockmark" style="color:var(--paper)"><i></i><i></i><i></i><i></i></span>
+      <h1 class="display" style="margin-top:24px;">Reliable ≠ <em>bigger</em>.<br>Reliable = <em>grounded</em>.</h1>
+      <p class="body" style="margin-top:26px;max-width:1100px;">DocLens shows a local assistant can understand technical knowledge and <b>cite its sources</b> — built not from a larger model, but from retrieval, reranking, grounding, and an eval that earns every decision.</p>
+    </div>
+    <div class="card lemon reveal center" style="grid-column:1/span 8;grid-row:7/span 2;">
+      <span class="kicker">github.com/deepaksinghcv/doclens-multimodal-rag</span>
+    </div>
+    <div class="card reveal center" style="grid-column:9/span 4;grid-row:7/span 2;">
+      <span class="kicker sm mut">Thank you</span>
+      <span class="pagenum" style="margin-top:8px;">13 / 13</span>
+    </div>
+  </div>
+</section>
+
+</main>
+</div>
+
+<div class="hud count" id="counter">01 / 13</div>
+<div class="hint">← → NAVIGATE · E EDIT</div>
+
+<script>
+/* ===========================================
+   SLIDE CONTROLLER — nav, scale, reveal, edit
+   =========================================== */
+class Deck{
+  constructor(){
+    this.slides=[...document.querySelectorAll('.slide')];
+    this.i=0;this.stage=document.getElementById('deckStage');
+    this.counter=document.getElementById('counter');this.pbar=document.getElementById('pbar');
+    this.scale();addEventListener('resize',()=>this.scale());
+    this.keys();this.touch();this.wheel();this.editSetup();this.hintFade();
+    this.show(0);
+  }
+  scale(){const f=Math.min(innerWidth/1920,innerHeight/1080);
+    this.stage.style.transform=`translate(${(innerWidth-1920*f)/2}px,${(innerHeight-1080*f)/2}px) scale(${f})`;}
+  show(n){this.i=Math.max(0,Math.min(n,this.slides.length-1));
+    this.slides.forEach((s,k)=>{s.classList.toggle('active',k===this.i);s.classList.toggle('visible',k===this.i);});
+    const p=`${String(this.i+1).padStart(2,'0')} / ${this.slides.length}`;
+    this.counter.textContent=p;this.pbar.style.width=((this.i+1)/this.slides.length*100)+'%';}
+  next(){this.show(this.i+1);}prev(){this.show(this.i-1);}
+  keys(){addEventListener('keydown',e=>{
+    if(e.key==='ArrowRight'||e.key==='PageDown'||e.key===' '){e.preventDefault();this.next();}
+    else if(e.key==='ArrowLeft'||e.key==='PageUp'){e.preventDefault();this.prev();}
+    else if(e.key==='Home'){this.show(0);}else if(e.key==='End'){this.show(this.slides.length-1);}
+    else if(e.key==='e'||e.key==='E'){this.toggleEdit();}});}
+  touch(){let x=0;addEventListener('touchstart',e=>x=e.changedTouches[0].clientX,{passive:true});
+    addEventListener('touchend',e=>{const d=e.changedTouches[0].clientX-x;if(Math.abs(d)>50)d<0?this.next():this.prev();},{passive:true});}
+  wheel(){let lock=false;addEventListener('wheel',e=>{if(lock)return;if(Math.abs(e.deltaY)<24)return;lock=true;e.deltaY>0?this.next():this.prev();setTimeout(()=>lock=false,650);},{passive:true});}
+  /* lightweight inline editing */
+  editSetup(){this.editing=false;const saved=localStorage.getItem('doclens-deck');
+    if(saved){try{const map=JSON.parse(saved);this.slides.forEach((s,k)=>{if(map[k])s.querySelector('.frame').innerHTML=map[k];});}catch(e){}}}
+  toggleEdit(){this.editing=!this.editing;
+    this.slides.forEach(s=>{const f=s.querySelector('.frame');f.contentEditable=this.editing;f.style.outline=this.editing?'2px dashed #E6FF3D':'none';});
+    if(!this.editing){const map={};this.slides.forEach((s,k)=>map[k]=s.querySelector('.frame').innerHTML);localStorage.setItem('doclens-deck',JSON.stringify(map));}
+    this.hint(this.editing?'EDIT ON · click text · E to save':'SAVED · ← → navigate');}
+  hint(t){const h=document.querySelector('.hint');h.textContent=t;h.classList.remove('dim');}
+  hintFade(){const h=document.querySelector('.hint');let t;const reset=()=>{h.classList.remove('dim');clearTimeout(t);t=setTimeout(()=>h.classList.add('dim'),4000);};['mousemove','keydown','touchstart'].forEach(e=>addEventListener(e,reset,{passive:true}));reset();}
+}
+new Deck();
+</script>
+</body>
+</html>
