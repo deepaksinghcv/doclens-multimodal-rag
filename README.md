@@ -23,19 +23,19 @@ Unlike a generic chatbot, DocLens grounds every response in retrieved evidence a
 
 ## ⭐ Highlights
 
-`Recall@5 = 1.00`  ·  `MRR ≈ 0.75`  ·  `100% local`  ·  `1,050 text + figure chunks indexed`
+`Recall@5 = 1.00`  ·  `MRR ≈ 0.77`  ·  `100% local`  ·  `1,050 text + figure chunks indexed`
 
 A summary of the improvements and how each was earned:
 
 | Improvement lever | Problem it solved | Outcome |
 |---|---|---|
-| **Evaluation harness** (Recall@K, MRR) | "Is retrieval actually good?" | Recall@5 **1.00**, MRR **≈0.75**; caught its own gold-label blind spots |
+| **Evaluation harness** (Recall@K, MRR) | "Is retrieval actually good?" | Recall@5 **1.00**, MRR **≈0.77** (21-question gold set); caught its own gold-label blind spots |
 | **Boilerplate removal + page-aware chunking** | header/footer noise polluting chunks & citations | clean, correctly page-cited retrieval |
-| **Two-stage retrieval** (bi- + cross-encoder), **A/B-tested** | ranking quality | measured ~neutral → kept optional (shipped on evidence, not hype) |
+| **Two-stage retrieval** (bi- + cross-encoder), **A/B-tested** | ranking quality | reranker measured **no lift** (0.75 vs 0.77) → kept optional (shipped on evidence, not hype) |
 | **Caption-and-embed multimodal** | figures/diagrams were unsearchable | figures retrievable; VLM reads the actual image to answer |
 | **Grounded generation + programmatic citations** | hallucination / untraceable answers | refuses when unsupported; every answer cites its source page |
 
-> Metrics are on a small, curated 11-question gold set — directional, built to *drive* decisions rather than to be statistically conclusive.
+> Metrics are on a curated 21-question gold set (pages verified against the source manuals) — directional, built to *drive* decisions rather than to be statistically conclusive.
 
 ---
 
@@ -98,7 +98,7 @@ A retrieval harness ([evaluation/retrieval_eval.py](evaluation/retrieval_eval.py
 - **Recall@K** — is a correct page in the top-K? (found-at-all)
 - **MRR** — reciprocal rank of the first correct hit (ranked-well)
 
-On the current gold set: **Recall@5 = 1.00** (the retriever finds the right page every time); **MRR ≈ 0.7–0.8** depending on reranking and chunk cleaning. The gold set is intentionally small (directional, not statistically conclusive) — it was built to *drive* decisions, and it already earned its keep: an A/B test showed the cross-encoder reranker gave no reliable lift over the strong bi-encoder baseline on this corpus, so it's kept optional rather than shipped by default.
+On a 21-question gold set (answer pages verified against the source manuals): **Recall@5 = 1.00** (the retriever finds a correct page every time) and **MRR ≈ 0.77** (13/21 correct at rank 1). The set is intentionally small — directional, built to *drive* decisions rather than be statistically conclusive — and it already earned its keep: an A/B test showed the cross-encoder reranker gave **no lift** over the strong bi-encoder baseline (MRR 0.75 vs 0.77, and it even dropped one answer out of the top-5), so it's kept **optional** rather than shipped by default.
 
 ---
 
